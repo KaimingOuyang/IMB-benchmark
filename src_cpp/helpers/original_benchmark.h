@@ -52,7 +52,7 @@ goods and services.
 #include <map>
 #include "IMB_benchmark.h"
 #include "IMB_comm_info.h"
-
+#include <unistd.h>
 
 extern "C" {
 #include "IMB_prototypes.h"
@@ -208,6 +208,9 @@ class OriginalBenchmark : public Benchmark {
             BMODE = &(BMark->RUN_MODES[imod]);
             descr->IMB_init_buffers_iter(&c_info, &ITERATIONS, BMark, BMODE, glob.iter, size);
             descr->helper_time_check(c_info, glob, BMark, ITERATIONS);
+        // printf("rank %d - %d\n", c_info.rank, getpid());
+        // fflush(stdout);
+        // sleep(8);
             bool failed = (descr->stop_iterations || (BMark->sample_failure));
             if (!failed) {
                 IMB_warm_up(BMark, &c_info, size, &ITERATIONS, glob.iter);
@@ -217,6 +220,22 @@ class OriginalBenchmark : public Benchmark {
                 MPI_Barrier(MPI_COMM_WORLD);
                 SLEEP(t);
             }
+        if (c_info.rank == 0 && size != 0) {
+            char outfile[64] = {'\0'};
+            char buf[32];
+            char *file = getenv("IMB_RMA_OUTFILE");
+            if (file == NULL) {
+                printf("please input file name throughput IMB_RMA_OUTFILE\n");
+                fflush(stdout);
+                exit(0);
+            }
+            strcat(outfile, file);
+            sprintf(buf, ".%d", c_info.w_num_procs);
+            strcat(outfile, buf);
+            FILE *fp = fopen(outfile, "a");
+            fprintf(fp, "%d %.3lf\n", c_info.w_num_procs, time[0] * 1e6);
+            fclose(fp);
+        }
             IMB_output(&c_info, BMark, BMODE, glob.header, size, &ITERATIONS, time);
             IMB_close_transfer(&c_info, BMark, size);
             if ((c_info.contig_type == CT_BASE_VEC || c_info.contig_type == CT_RESIZE_VEC) &&

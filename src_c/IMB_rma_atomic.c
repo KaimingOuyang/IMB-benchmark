@@ -98,31 +98,37 @@ void IMB_rma_accumulate(struct comm_info* c_info, int size,
 
     for (i = 0; i < N_BARR; i++)
         MPI_Barrier(c_info->communicator);
-
-    if (c_info->rank == c_info->pair0) {
+    // printf("rank %d - %d\n", c_info->rank, getpid());
+    // fflush(stdout);
+    // sleep(8);
+    /* force non aggregate */
+    // run_mode->AGGREGATE = 0;
+    if (c_info->rank == c_info->pair0 && c_info->rank == 0) {
+        // printf("rank %d enter accumulate\n", c_info->rank);
+        // fflush(stdout);
         MPI_Win_lock(MPI_LOCK_SHARED, root, 0, c_info->WIN);
-        if (run_mode->AGGREGATE) {
-            res_time = MPI_Wtime();
-            for (i = 0; i < iterations->n_sample; i++) {
-                MPI_ERRHAND(MPI_Accumulate((char*)c_info->s_buffer + i%iterations->s_cache_iter*iterations->s_offs,
-                                           s_num, c_info->red_data_type, root,
-                                           i%iterations->r_cache_iter*r_off, r_num,
-                                           c_info->red_data_type, c_info->op_type, c_info->WIN));
-            }
-            MPI_ERRHAND(MPI_Win_flush(root, c_info->WIN));
-            res_time = (MPI_Wtime() - res_time) / iterations->n_sample;
-        } else if (!run_mode->AGGREGATE) {
-            res_time = MPI_Wtime();
-            for (i = 0; i < iterations->n_sample; i++) {
-                MPI_ERRHAND(MPI_Accumulate((char*)c_info->s_buffer + i%iterations->s_cache_iter*iterations->s_offs,
-                                           s_num, c_info->red_data_type, root,
-                                           i%iterations->r_cache_iter*r_off, r_num,
-                                           c_info->red_data_type, c_info->op_type, c_info->WIN));
+        // if (run_mode->AGGREGATE) {
+        //     res_time = MPI_Wtime();
+        //     for (i = 0; i < iterations->n_sample; i++) {
+        //         MPI_ERRHAND(MPI_Accumulate((char*)c_info->s_buffer + i%iterations->s_cache_iter*iterations->s_offs,
+        //                                    s_num, c_info->red_data_type, root,
+        //                                    i%iterations->r_cache_iter*r_off, r_num,
+        //                                    c_info->red_data_type, c_info->op_type, c_info->WIN));
+        //     }
+        //     MPI_ERRHAND(MPI_Win_flush(root, c_info->WIN));
+        //     res_time = (MPI_Wtime() - res_time) / iterations->n_sample;
+        // } else if (!run_mode->AGGREGATE) {
+        res_time = MPI_Wtime();
+        for (i = 0; i < iterations->n_sample; i++) {
+            MPI_ERRHAND(MPI_Accumulate((char*)c_info->s_buffer + i % iterations->s_cache_iter * iterations->s_offs,
+            s_num, c_info->red_data_type, root,
+            i % iterations->r_cache_iter * r_off, r_num,
+            c_info->red_data_type, c_info->op_type, c_info->WIN));
 
-                MPI_ERRHAND(MPI_Win_flush(root, c_info->WIN));
-            }
-            res_time = (MPI_Wtime() - res_time) / iterations->n_sample;
+            MPI_ERRHAND(MPI_Win_flush(root, c_info->WIN));
         }
+        res_time = (MPI_Wtime() - res_time) / iterations->n_sample;
+        // }
         MPI_Win_unlock(root, c_info->WIN);
     }
     MPI_Barrier(c_info->communicator);
