@@ -103,6 +103,7 @@ void IMB_rma_accumulate(struct comm_info* c_info, int size,
     // sleep(8);
     /* force non aggregate */
     // run_mode->AGGREGATE = 0;
+    // printf("rank %d - n_sample %d, size %d, s_size %d, r_size %d\n", c_info->rank, iterations->n_sample, size, s_size, r_size);
     if (c_info->rank == c_info->pair0 && c_info->rank == 0) {
         // printf("rank %d enter accumulate\n", c_info->rank);
         // fflush(stdout);

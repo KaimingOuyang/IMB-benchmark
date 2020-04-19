@@ -208,9 +208,10 @@ class OriginalBenchmark : public Benchmark {
             BMODE = &(BMark->RUN_MODES[imod]);
             descr->IMB_init_buffers_iter(&c_info, &ITERATIONS, BMark, BMODE, glob.iter, size);
             descr->helper_time_check(c_info, glob, BMark, ITERATIONS);
-        // printf("rank %d - %d\n", c_info.rank, getpid());
+        // printf("rank %d - %d\n", c_info.w_rank, getpid());
         // fflush(stdout);
         // sleep(8);
+            MPI_Barrier(MPI_COMM_WORLD);
             bool failed = (descr->stop_iterations || (BMark->sample_failure));
             if (!failed) {
                 IMB_warm_up(BMark, &c_info, size, &ITERATIONS, glob.iter);
@@ -220,6 +221,7 @@ class OriginalBenchmark : public Benchmark {
                 MPI_Barrier(MPI_COMM_WORLD);
                 SLEEP(t);
             }
+            MPI_Barrier(MPI_COMM_WORLD);
         if (c_info.rank == 0 && size != 0) {
             char outfile[64] = {'\0'};
             char buf[32];
