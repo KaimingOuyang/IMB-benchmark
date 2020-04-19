@@ -230,7 +230,7 @@ class OriginalBenchmark : public Benchmark {
                 exit(0);
             }
             strcat(outfile, file);
-            sprintf(buf, ".%d", c_info.w_num_procs);
+            sprintf(buf, ".%d", size);
             strcat(outfile, buf);
             FILE *fp = fopen(outfile, "a");
             fprintf(fp, "%d %.3lf\n", c_info.w_num_procs, time[0] * 1e6);
